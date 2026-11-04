@@ -1,0 +1,57 @@
+# Default values for Monitoring.
+# Telemetry apps push metrics to the ingest Service (see templates/ingest.yaml)
+# and add dashboards as ConfigMaps labeled grafana_dashboard: "1".
+
+victoriametrics:                          # the victoria-metrics-single chart
+  server:
+    fullnameOverride: victoria-metrics
+    mode: deployment                      # its PVC belongs to the release: uninstalling deletes the metrics (a StatefulSet's would stay)
+    retentionPeriod: 3                    # months of history kept
+    persistentVolume:                     # the metrics; survives pod restarts
+      enabled: true
+      storageClassName: ""                # the cluster's default
+      size: 10Gi
+
+    # deployment target(s)
+    nodeSelector: {}
+    affinity: {}
+    tolerations: []
+
+grafana:                                  # the grafana chart
+  fullnameOverride: grafana
+  # admin login: the chart generates a password into the grafana Secret (admin-password)
+  service:
+    type: NodePort
+    nodePort: 30084                       # LAN access: http://<any-node-ip>:30084
+  persistence:                            # dashboards and settings made in the UI
+    enabled: true
+    size: 1Gi
+  deploymentStrategy:
+    type: Recreate                        # one SQLite database on a single-node volume: never two pods at once
+  testFramework:
+    enabled: false
+  sidecar:
+    dashboards:                           # any app's dashboard ConfigMap, in any namespace
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+      searchNamespace: ALL
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: VictoriaMetrics
+          type: prometheus                # VictoriaMetrics answers PromQL/MetricsQL
+          url: http://victoria-metrics:8428
+          access: proxy
+          isDefault: true
+
+  # deployment target(s)
+  nodeSelector: {}
+  affinity: {}
+  tolerations: []
+
+# Grafana's public route, as for every catalog app
+ingress:
+  enabled: false                          # true = public at https://<host>; TLS is terminated by nginx on the proxy host
+  host: ""                                # required when enabled

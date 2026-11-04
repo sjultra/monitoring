@@ -1,0 +1,20 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana
+  annotations:
+    kubernetes.io/ingress.class: "traefik"  # TLS is terminated by nginx on the proxy host, which forwards to Traefik
+spec:
+  rules:
+    - host: {{ required "ingress.host is required when ingress.enabled is true" .Values.ingress.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: grafana
+                port:
+                  number: 80
+{{- end }}

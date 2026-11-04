@@ -1,0 +1,24 @@
+# The site's Monitoring endpoint: telemetry apps push here, never to the store
+# directly, so a gateway (e.g. the OpenTelemetry Collector) can later sit
+# behind this name without changing them. From another namespace:
+#   http://ingest.<namespace>.svc:8428
+#   /write                   InfluxDB line protocol (Telegraf's influxdb output)
+#   /api/v1/write            Prometheus remote-write
+#   /opentelemetry/v1/metrics  OTLP (HTTP)
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingest
+  labels:
+    app.kubernetes.io/name: monitoring
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  selector:                 # the VictoriaMetrics server pod, for now
+    app: server
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/name: victoriametrics
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8428
+      targetPort: 8428

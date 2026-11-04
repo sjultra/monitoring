@@ -1,0 +1,13 @@
+apiVersion: v2
+name: monitoring
+version: 0.0.0          # set from the release tag (vX.Y.Z) when published; see .github/workflows/release.yml
+appVersion: "0.0.0"     # set from the same release tag
+description: One metrics stack per cluster - VictoriaMetrics to store, Grafana to view - that telemetry apps push to and add dashboards to
+dependencies:
+  - name: victoria-metrics-single
+    alias: victoriametrics
+    version: 0.50.0
+    repository: https://victoriametrics.github.io/helm-charts/
+  - name: grafana
+    version: 10.5.15
+    repository: https://grafana.github.io/helm-charts

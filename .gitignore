@@ -1,0 +1,4 @@
+# fetched from Chart.lock by `helm dependency build`
+helm/service/charts/
+*.tgz
+.DS_Store
